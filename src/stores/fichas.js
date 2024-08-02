@@ -13,9 +13,27 @@ export const useFichaStore = defineStore("ficha", () => {
             return error
         }
     }
-    async function postCrearFichas() {
+    async function postCrearFichas(code, name) {
         try {
-            let r = await axios.get(`http://localhost:4000/aprendices/crear`)
+            let r = await axios.post(`http://localhost:4000/fichas/crear`, {
+                codigo: code,
+                nombre: name
+            })
+            console.log(r);
+            return r
+        } catch (error) {
+            console.log(error);
+            return error
+        }
+    }
+    async function putModificarFichas(code, name, id) {
+        try {
+            let r = axios.put(`http://localhost:4000/fichas/modificar/${id}`, {
+                codigo: code,
+                nombre: name
+            })
+            console.log(r);
+            return r
         } catch (error) {
             
         }
@@ -37,7 +55,7 @@ export const useFichaStore = defineStore("ficha", () => {
         }
     }
     return {
-        getListarFichas, postCrearFichas, putActivarFichas, putDesactivarFichas
+        getListarFichas, postCrearFichas, putActivarFichas, putDesactivarFichas, putModificarFichas
     }
 }, {
     persist: true

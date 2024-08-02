@@ -21,13 +21,13 @@ const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)
 
 const myApp = createApp(App)
-
+myApp.use(router)
 myApp.use(Quasar, {
   plugins: { Notify }, // import Quasar plugins and add here
 })
 
 // Assumes you have a <div id="app"></div> in your index.html
-myApp.use(router)
+
 myApp.use(pinia)
 myApp.mount('#app')
 
