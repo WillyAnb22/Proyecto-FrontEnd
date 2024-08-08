@@ -1,20 +1,11 @@
 <template>
-  
-</template>
-<!-- <template>
   <div class="todo">
     <div class="q-pa-md">
-      <q-table title="Fichas" :rows="rows" :columns="columns" row-key="name">
+      <q-table title="Usuarios" :rows="rows" :columns="columns" row-key="name">
         <template v-slot:body-cell-opciones="props">
           <q-td :props="props">
-            <q-btn
-              label="📝"
-              color="black"
-              @click="(icon = true), (change = true), traerId(props.row._id)"
-            />
-            <q-btn v-if="props.row.estado == 0" @click="activar(props.row._id)"
-              >✅</q-btn
-            >
+            <q-btn label="📝" color="black" @click="(icon = true), (change = true), traerId(props.row._id)" />
+            <q-btn v-if="props.row.estado == 0" @click="activar(props.row._id)">✅</q-btn>
             <q-btn v-else @click="desactivar(props.row._id)">❌</q-btn>
           </q-td>
         </template>
@@ -27,67 +18,48 @@
       </q-table>
     </div>
     <div class="q-pa-md q-gutter-sm">
-      <q-btn
-        label="Crear ficha"
-        color="green-8"
-        @click="(icon = true), (change = false)"
-      />
+      <q-btn label="Crear Usuario" color="green-8" @click="(icon = true), (change = false)" />
     </div>
     <div class="q-pa-md q-gutter-sm">
       <q-dialog v-model="icon" persistent>
         <q-card>
           <q-card-section class="row items-center q-pb-none">
-            <div class="text-h6" v-if="change == false">Crear Ficha</div>
-            <div class="text-h6" v-else>Editar Ficha</div>
+            <div class="text-h6" v-if="change == false">Crear Usuario</div>
+            <div class="text-h6" v-else>Editar Usuario</div>
             <q-space />
             <q-btn icon="close" flat round dense v-close-popup />
           </q-card-section>
 
           <q-card-section>
             <div class="q-pa-md" style="max-width: 400px">
-              <q-form
-                @submit="onSubmit()"
-                @reset="onReset()"
-                class="q-gutter-md"
-              >
-                <q-input
-                  filled
-                  v-model="code"
-                  label="Código *"
-                  hint="Código de la ficha"
-                  lazy-rules
-                  :rules="[
-                    (val) =>
-                      (val && val.length > 0) ||
-                      'Por favor, dígite el código de la ficha',
-                  ]"
-                />
-                <q-input
-                  filled
-                  v-model="name"
-                  label="Nombre *"
-                  hint="Nombre de la ficha"
-                  lazy-rules
-                  :rules="[
-                    (val) =>
-                      (val && val.length > 0) ||
-                      'Por favor, dígite el nombre de la ficha',
-                  ]"
-                />
+              <q-form @reset="onReset()" class="q-gutter-md">
+                <q-input filled v-model="email" label="Correo *" hint="Correo del usuario" lazy-rules :rules="[
+                  (val) => {
+                    if (change === false) {
+                      return (val && val.length > 0) ||
+                        'Por favor, dígite el correo del usuario'
+                    } else { return true }
+                  }
+                ]" />
+                <q-input filled v-model="name" label="Nombre *" hint="Nombre del usuario" lazy-rules :rules="[
+                  (val) => {
+                    if (change === false) {
+                      return (val && val.length > 0) ||
+                        'Por favor, dígite el nombre del usuario'
+                    } else { return true }
+                  }
+                ]" />
+                <q-input filled v-model="password" label="Contraseña *" hint="Contraseña" lazy-rules :rules="[
+                  (val) => {
+                    if (change === false) {
+                      return (val && val.length > 0) ||
+                        'Por favor, dígite la contraseña'
+                    } else { return true }
+                  }
+                ]" />
                 <div>
-                  <q-btn
-                    label="Guardar"
-                    type="submit"
-                    color="primary"
-                    @click="crear(code, name, id)"
-                  />
-                  <q-btn
-                    label="Reset"
-                    type="reset"
-                    color="primary"
-                    flat
-                    class="q-ml-sm"
-                  />
+                  <q-btn label="Guardar" type="submit" color="primary" @click="crear()" />
+                  <q-btn label="Reset" type="reset" color="primary" flat class="q-ml-sm" />
                 </div>
               </q-form>
             </div>
@@ -100,17 +72,17 @@
 
 <script setup>
 import { useQuasar } from "quasar";
+import { Notify } from 'quasar'
 import { onBeforeMount, ref } from "vue";
-import { useFichaStore } from "./../stores/usuarios.js";
+import { useUsuarioStore } from "./../stores/usuarios.js";
 
-let use  = useFichaStore();
-let $q = useQuasar();
-let code = ref("");
+let useUsuario = useUsuarioStore();
+let email = ref("");
 let name = ref("");
 let icon = ref(false);
-let change = ref();
-let idFicha = ref();
-let titleModal = ref("");
+let change = ref(); // false: crear, true: modificar
+let password = ref("");
+let idUsuario = ref();
 let rows = ref([]);
 let columns = ref([
   {
@@ -136,58 +108,84 @@ onBeforeMount(() => {
 });
 
 async function traer() {
-  let res = await useFicha.getListarFichas();
-  rows.value = res.data.fichas;
+  let res = await useUsuario.getListarUsuarios();
+  rows.value = res.data.usuarios;
 }
 
 async function activar(id) {
-  let res = await useFicha.putActivarFichas(id);
+  let res = await useUsuario.putActivarUsuario(id);
   traer();
 }
 
 async function desactivar(id) {
-  let res = await useFicha.putDesactivarFichas(id);
+  let res = await useUsuario.putDesactivarUsuario(id);
   traer();
 }
 
 async function traerId(id) {
-  idFicha.value = id;
+  idUsuario.value = id;
+  console.log(idUsuario.value)
 }
 
-async function crear(code, name) {
-  if (change.value == false) {
-    let res = await useFicha.postCrearFichas(code, name);
-    traer();
-    console.log(change.value);
-  } else {
-    let res = await useFicha.putModificarFichas(code, name, idFicha.value);
-    traer();
-    console.log(idFicha.value);
+async function crear() {
+  let res;
+  if (change.value === false) {
+    res = await useUsuario.postCrearUsuario(email.value, name.value, password.value);
   }
-}
-
-function onSubmit() {
-  if (!name.value && !code.value) {
-    $q.notify({
+  else {
+    res = await useUsuario.putModificarUsuario(email.value, name.value, password.value, idUsuario.value);
+  }
+  if (res.validar.value === false) {
+    Notify.create({
       color: "red-5",
       textColor: "white",
       icon: "warning",
-      message: "Falta llenar datos",
+      message: change.value == true ? "Error al modificar el usuario" : "Error al crear usuario",
+      timeout: 2500,
     });
   } else {
-    $q.notify({
-      color: "green-4",
-      textColor: "white",
+    icon.value = false
+    onReset()
+    traer();
+    Notify.create({
+      color: "green-3",
+      message: "Registro exitoso",
       icon: "cloud_done",
-      message: "Actualización exitosa",
+      timeout: 2500,
     });
-    onReset();
-    icon.value = false;
   }
 }
+//   }
+// } else {
+//   let res = await useUsuario.putModificarUsuario(email.value, name.value, password.value, idUsuario.value);
+//   console.log(idUsuario.value);
+//   console.log(res.validar.value, "en put")
+//   if (res.validar.value == false) {
+//     Notify.create({
+//       color: "red-5",
+//       textColor: "white",
+//       icon: "warning",
+//       message: "Error al modificar el usuario",
+//       timeout: 2500,
+//     });
+//   } else {
+//     traer();
+//     icon.value = false
+//     onReset()
+//     console.log(change.value);
+//     Notify.create({
+//       color: "green-3",
+//       message: "Registro exitoso",
+//       icon: "cloud_done",
+//       timeout: 2500,
+//     });
+//   }
+
+// }
 
 function onReset() {
-  name.value = null;
-  code.value = null;
+  name.value = "";
+  email.value = "";
+  password.value = "";
 }
-</script> -->
+</script>

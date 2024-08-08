@@ -1,6 +1,8 @@
 import { defineStore } from "pinia"
 import axios from "axios"
-// import { ref } from "vue"
+import { ref } from "vue"
+
+let validar = ref(true)
 
 export const useUsuarioStore = defineStore("usuario", () => {
     async function getListarUsuarios() {
@@ -13,29 +15,35 @@ export const useUsuarioStore = defineStore("usuario", () => {
             return error
         }
     }
-    async function postCrearUsuario(email, name) {
+    async function postCrearUsuario(email, name, password) {
         try {
             let r = await axios.post(`http://localhost:4000/usuarios/crear`, {
                 email,
-                nombre: name
+                nombre: name,
+                password
             })
-            console.log(r);
-            return r
+            validar.value = true
+            return { r, validar }
         } catch (error) {
+            validar.value = false
             console.log(error);
-            return error
+            return { error, validar }
         }
     }
-    async function putModificarUsuario(email, name, id) {
+
+    async function putModificarUsuario(email, name, password, id) {
         try {
-            let r = axios.put(`http://localhost:4000/usuarios/modificar/${id}`, {
+            let r = await axios.put(`http://localhost:4000/usuarios/modificar/${id}`, {
                 email,
+                password,
                 nombre: name
             })
-            console.log(r);
-            return r
+            validar.value = true
+            return { r, validar }
         } catch (error) {
-            
+            validar.value = false
+            console.log(error);
+            return { error, validar }
         }
     }
     async function putActivarUsuario(id) {
@@ -44,6 +52,7 @@ export const useUsuarioStore = defineStore("usuario", () => {
             return r
         } catch (error) {
             console.log(error);
+            return error
         }
     }
     async function putDesactivarUsuario(id) {
@@ -52,6 +61,7 @@ export const useUsuarioStore = defineStore("usuario", () => {
             return r
         } catch (error) {
             console.log(error);
+            return error
         }
     }
     return {
