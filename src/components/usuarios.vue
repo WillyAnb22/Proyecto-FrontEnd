@@ -33,7 +33,7 @@
           <q-card-section>
             <div class="q-pa-md" style="max-width: 400px">
               <q-form @reset="onReset()" class="q-gutter-md">
-                <q-input filled v-model="email" label="Correo *" hint="Correo del usuario" lazy-rules :rules="[
+                <q-input filled v-model="email" label="Correo" hint="Correo del usuario" lazy-rules :rules="[
                   (val) => {
                     if (change === false) {
                       return (val && val.length > 0) ||
@@ -41,7 +41,7 @@
                     } else { return true }
                   }
                 ]" />
-                <q-input filled v-model="name" label="Nombre *" hint="Nombre del usuario" lazy-rules :rules="[
+                <q-input filled v-model="name" label="Nombre" hint="Nombre del usuario" lazy-rules :rules="[
                   (val) => {
                     if (change === false) {
                       return (val && val.length > 0) ||
@@ -49,17 +49,20 @@
                     } else { return true }
                   }
                 ]" />
-                <q-input filled v-model="password" label="Contraseña *" hint="Contraseña" lazy-rules :rules="[
-                  (val) => {
-                    if (change === false) {
-                      return (val && val.length > 0) ||
-                        'Por favor, dígite la contraseña'
-                    } else { return true }
-                  }
-                ]" />
+                <q-input :type="isPwd ? 'password' : 'text'" filled v-model="password" label="Contraseña"
+                  hint="Contraseña" lazy-rules :rules="[
+                    (val) => {
+                      if (change === false) {
+                        return (val && val.length > 0) ||
+                          'Por favor, dígite la contraseña'
+                      } else { return true }
+                    }
+                  ]"><template v-slot:append>
+                    <q-icon :name="isPwd ? 'visibility_off' : 'visibility'" class="cursor-pointer"
+                      @click="isPwd = !isPwd" />
+                  </template></q-input>
                 <div>
-                  <q-btn label="Guardar" type="submit" color="primary" @click="crear()" />
-                  <q-btn label="Reset" type="reset" color="primary" flat class="q-ml-sm" />
+                  <q-btn :loading="useUsuario.loading" label="Guardar" type="submit" color="green-8" @click="crear()" />
                 </div>
               </q-form>
             </div>
@@ -71,7 +74,6 @@
 </template>
 
 <script setup>
-import { useQuasar } from "quasar";
 import { Notify } from 'quasar'
 import { onBeforeMount, ref } from "vue";
 import { useUsuarioStore } from "./../stores/usuarios.js";
@@ -79,9 +81,10 @@ import { useUsuarioStore } from "./../stores/usuarios.js";
 let useUsuario = useUsuarioStore();
 let email = ref("");
 let name = ref("");
-let icon = ref(false);
-let change = ref(); // false: crear, true: modificar
 let password = ref("");
+let icon = ref(false);
+let isPwd = ref(true);
+let change = ref(); // false: crear, true: modificar
 let idUsuario = ref();
 let rows = ref([]);
 let columns = ref([
@@ -104,8 +107,8 @@ let columns = ref([
 ]);
 
 onBeforeMount(() => {
-  traer();
-});
+  traer()
+})
 
 async function traer() {
   let res = await useUsuario.getListarUsuarios();
@@ -124,7 +127,6 @@ async function desactivar(id) {
 
 async function traerId(id) {
   idUsuario.value = id;
-  console.log(idUsuario.value)
 }
 
 async function crear() {
@@ -135,15 +137,7 @@ async function crear() {
   else {
     res = await useUsuario.putModificarUsuario(email.value, name.value, password.value, idUsuario.value);
   }
-  if (res.validar.value === false) {
-    Notify.create({
-      color: "red-5",
-      textColor: "white",
-      icon: "warning",
-      message: change.value == true ? "Error al modificar el usuario" : "Error al crear usuario",
-      timeout: 2500,
-    });
-  } else {
+  if (res.validar.value === true) {
     icon.value = false
     onReset()
     traer();
@@ -153,35 +147,16 @@ async function crear() {
       icon: "cloud_done",
       timeout: 2500,
     });
+  } else {
+    Notify.create({
+      color: "red-5",
+      textColor: "white",
+      icon: "warning",
+      message: res.error.response.data.errors[0].msg,
+      timeout: 2500,
+    });
   }
 }
-//   }
-// } else {
-//   let res = await useUsuario.putModificarUsuario(email.value, name.value, password.value, idUsuario.value);
-//   console.log(idUsuario.value);
-//   console.log(res.validar.value, "en put")
-//   if (res.validar.value == false) {
-//     Notify.create({
-//       color: "red-5",
-//       textColor: "white",
-//       icon: "warning",
-//       message: "Error al modificar el usuario",
-//       timeout: 2500,
-//     });
-//   } else {
-//     traer();
-//     icon.value = false
-//     onReset()
-//     console.log(change.value);
-//     Notify.create({
-//       color: "green-3",
-//       message: "Registro exitoso",
-//       icon: "cloud_done",
-//       timeout: 2500,
-//     });
-//   }
-
-// }
 
 function onReset() {
   name.value = "";

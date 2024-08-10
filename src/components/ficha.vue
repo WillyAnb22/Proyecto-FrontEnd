@@ -33,7 +33,7 @@
           <q-card-section>
             <div class="q-pa-md" style="max-width: 400px">
               <q-form @reset="onReset()" class="q-gutter-md">
-                <q-input filled v-model="code" label="Código *" hint="Código de la ficha" lazy-rules :rules="[
+                <q-input filled type="number" v-model="code" label="Código" hint="Código de la ficha" lazy-rules :rules="[
                   (val) => {
                     if (change === false) {
                       return (val && val.length > 0) ||
@@ -41,7 +41,7 @@
                     } else { return true }
                   }
                 ]" />
-                <q-input filled v-model="name" label="Nombre *" hint="Nombre de la ficha" lazy-rules :rules="[
+                <q-input filled v-model="name" label="Nombre" hint="Nombre de la ficha" lazy-rules :rules="[
                   (val) => {
                     if (change === false) {
                       return (val && val.length > 0) ||
@@ -50,8 +50,7 @@
                   }
                 ]" />
                 <div>
-                  <q-btn label="Guardar" type="submit" color="primary" @click="crear()" />
-                  <q-btn label="Limpiar" type="reset" color="primary" flat class="q-ml-sm" />
+                  <q-btn :loading="useFicha.loading" label="Guardar" type="submit" color="green-8" @click="crear()" />
                 </div>
               </q-form>
             </div>
@@ -65,7 +64,7 @@
 <script setup>
 import { Notify } from 'quasar'
 import { onBeforeMount, ref } from "vue";
-import { useFichaStore } from '../stores/fichas';
+import { useFichaStore } from '../stores/fichas.js';
 
 let useFicha = useFichaStore();
 let code = ref("");
@@ -124,15 +123,7 @@ async function crear() {
   else {
     res = await useFicha.putModificarFicha(code.value, name.value, idFicha.value);
   }
-  if (res.validar.value === false) {
-    Notify.create({
-      color: "red-5",
-      textColor: "white",
-      icon: "warning",
-      message: change.value ? "Error al modificar la ficha" : "Error al crear ficha",
-      timeout: 2500,
-    });
-  } else {
+  if (res.validar.value === true) {
     icon.value = false
     onReset()
     traer();
@@ -140,6 +131,14 @@ async function crear() {
       color: "green-3",
       message: "Registro exitoso",
       icon: "cloud_done",
+      timeout: 2500,
+    });
+  } else {
+    Notify.create({
+      color: "red-5",
+      textColor: "white",
+      icon: "warning",
+      message: res.error.response.data.errors[0].msg,
       timeout: 2500,
     });
   }

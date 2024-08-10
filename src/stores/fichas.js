@@ -2,7 +2,8 @@ import { defineStore } from "pinia"
 import axios from "axios"
 import { ref } from "vue"
 
-let validar = ref(true)
+let validar = ref(true) 
+let loading = ref()
 
 export const useFichaStore = defineStore("ficha", () => {
     async function getListarFichas() {
@@ -15,6 +16,7 @@ export const useFichaStore = defineStore("ficha", () => {
         }
     }
     async function postCrearFicha(code, name) {
+        loading.value = true
         try {
             let r = await axios.post(`http://localhost:4000/fichas/crear`, {
                 codigo: code,
@@ -26,21 +28,33 @@ export const useFichaStore = defineStore("ficha", () => {
             validar.value = false
             console.log(error);
             return { error, validar }
+        } finally {
+            loading.value = false
         }
     }
 
     async function putModificarFicha(code, name, id) {
+        loading.value = true
         try {
-            let r = await axios.put(`http://localhost:4000/fichas/modificar/${id}`, {
-                codigo: code,
-                nombre: name
-            })
+            let r = ref()
+            if (code){
+                r.value = await axios.put(`http://localhost:4000/fichas/modificar/${id}`, {
+                    codigo: code
+                })
+            }
+            if (name){
+                r.value = await axios.put(`http://localhost:4000/fichas/modificar/${id}`, {
+                    nombre: name
+                })
+            }
             validar.value = true
             return { r, validar }
         } catch (error) {
             validar.value = false
             console.log(error);
             return { error, validar }
+        } finally {
+            loading.value = false
         }
     }
     async function putActivarFicha(id) {
@@ -62,7 +76,7 @@ export const useFichaStore = defineStore("ficha", () => {
         }
     }
     return {
-        getListarFichas, postCrearFicha, putActivarFicha, putDesactivarFicha, putModificarFicha
+        getListarFichas, postCrearFicha, putActivarFicha, putDesactivarFicha, putModificarFicha, loading
     }
 }, {
     persist: true
